@@ -12,3 +12,19 @@ It invovles converting the things done on a particular image to work on a contio
 THE THIRD SCRIPT:
 
 It is mostly the script for gaining data made by Gaurav only but small tweaks are made on it make it automatic and the functions used in the first script is used here.
+
+THE FOURTH SCRIPT:
+
+This script uses select ROI for choosing bounding boxes for lane. Then TrackerTLD is created and initialised with this bounding box and its corresponding image.Then we get centre of the bounding box everytime the image changes and the tracker gets updated.Then with center and the midpoint of the bottom line of the image(width/2,height) is used to create a line then the angle between this line and Y axis found.It is in the range of -90 to 90 then angle is mapped to -1 to 1 to give the steering value.
+
+THE FIFTH SCRIPT:
+
+The fifth script invovles addition of another Tracker for object detection so that the vehicle can move away from it.
+The above method used in Fourth script is used for getting steering values from the object detector(Note: it is important to note that the steering value we get from the object detector is not the value we should cause if the object is in say left then it would give only negative  steering value which would make the bot to move in left direction but that is not needed).if the object detector cant detect anything or the area of the bounding box of object detector is less than the AREA THRESHOLD then steering value given by lane dtector will be used if the area is above threshold then if value by object detector is less than the POSITION THRESHOLD then negative of the value given by object dtector will be fed to the bot/ vehicle if it is above the POSITION THRESHOLD then value from lane detector will be used.
+
+AREA THRESHOLD:
+The area threshold is dtermined by keeping the object at a save distance from the bot then its area is caluculated.If the area is above this threshold which means the object is neare to the bot than save distance so it is a danger and the bot should move away from it.
+
+POSITION THREHOLD:
+this threshold determines whether the object is within the lane or not . If a object is not within the lane then we need not worry about it.
+
