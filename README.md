@@ -28,3 +28,9 @@ The area threshold is dtermined by keeping the object at a save distance from th
 POSITION THREHOLD:
 this threshold determines whether the object is within the lane or not . If a object is not within the lane then we need not worry about it.
 
+THE SIXTH SCRIPT:
+
+Position threshold is given in such a way that object tracker's steering value must lie within left end and right end of lane tracker.
+It is done by the following way while finding steering value given by the center of lane detector we would be giving it to the bot in the cases where object tracker can't find the object or the object's area is below area threshold.
+If object tracker's area is above threshold then we will take steering values for the midpoints of the breath lines of the lane tracker and we name them steerl and steerr which corresponds to left and right midpoints of the breath lines in tracker. We will then check whether steering value given by center of object tracker lies between steerl and steerr if it lies between that then final steering angle of steerl + steerr - steero would be given this will ensure that always the turning will decrease as we will move away from the obstacle. If the object tracker's steering value doesn't lie between the steerl and steerr which means it is not on the lane so , lane detector's output will be given as final output.
+colour tagged everything such that the steering  output will be green in colour if object is not visible or it is within area threshold , it will be of blue in colour if the obstacle is inside the lane and will be red in colour if obstacle is outside the lane.
