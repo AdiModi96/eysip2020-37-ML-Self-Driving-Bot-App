@@ -43,7 +43,7 @@ while count <=479:
     # line_image=display_lines(frame,averaged_lines)
     # final=cv2.addWeighted(frame, 0.8, line_image, 1, 1)
     timer = cv2.getTickCount()
-    success, bbox = tracker.update(img) 
+    success, bbox = tracker.update(img) # update success True if lane is detected.
     if success:
         drawBox(img,bbox)
         cv2.putText(img, "Lost", (100, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
