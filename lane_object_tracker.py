@@ -100,7 +100,7 @@ while count <=539:
     elif fps>20: myColor = (230,20,20)
     else: myColor = (20,20,230)
     cv2.putText(img,str(int(fps)), (75, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, myColor, 2);
-    cv2.imshow("result",img_rgb)
+    cv2.imshow("result",img)
     count = count + 1
     if cv2.waitKey(1)==ord('q'):
         break
