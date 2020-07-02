@@ -2,7 +2,11 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-
+# bbox for left lane 
+# bbox1 for object 
+# bbox2 for right lane
+# switch is used to identify which lane on which lane it is travelling right now as the bot will be placed in left side so the value will be initialised to -1 and right lane has a value 1
+# A is the area of the bounding box of the object tracker after drawing it on a image where the object is kept in a safe distance that will act as area threshold.
 
 def steer1(x,y,img): # had to do this operation again and again for many points so created a seperate function for it(this will give steering angle for that particular point)
 
@@ -24,27 +28,28 @@ def drawBox(img,bbox):# this function will be used if no object is detected only
     steer = steer1(X, Y, img)
     cv2.putText(img, str(steer), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-def drawBox1(img,bbox,bbox1,switch,bbox2):# this will be used if both lane and object are detected
-    if switch == -1
+def drawBox1(img,bbox,bbox1,switch,bbox2,A):# this will be used if both lane and object are detected
+    if switch == -1# unpacking left lane tracker if switch = -1
         x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
-    else:
+    else:# unpacking left lane tracker if switch = 1
         x, y, w, h = int(bbox2[0]), int(bbox2[1]), int(bbox2[2]), int(bbox2[3])
     X, Y = int(x+w/2) , int(y+ h/2)
     x1, y1, w1, h1 = int(bbox1[0]), int(bbox1[1]), int(bbox1[2]), int(bbox1[3])
     X1, Y1 = int(x1+w1/2) , int(y1+ h1/2)
     steer2 = steer1(X, Y, img)# here both center of object and lane trackers or calculated 
-    a = w1*h1
-    if a<600:# checks whether object tracker is above the area threshold or not.if not  then value by lane tracker would be used 
+    a = w1*h1 # 
+    if a<A:# checks whether object tracker is above the area threshold or not.if not  then value by lane tracker would be used 
         cv2.putText(img, str(steer2), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     else:# if it is above the threshold then steering values corresponding to the midpoints of the breath lines of the lane tracker rectangle will be calculated, the value corresponding to the centre of the object will also be calculated
         steero = steer1(X1, Y1, img)#steering value for center of object tracker.
         steerl = steer1(x, y/2, img)# steering value of midpoint of left breath line
-        steerr = steer1(x+w, y/2, img)
-        switch = -switch
-        switch_threshold = switch*(steerr-steerl)/2#this is done to trun the bot so it can see the switched lane
-        cv2.putText(img, str(steer2 + switch_threshold), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
-        # this means object is not in the lane which implies lane dtector's value will be given    
+        steerr = steer1(x+w, y/2, img)# steering value of midpoint of right breath line
+        if steero < steerr && steero >= steerl:
+            switch = -switch # switch will be inverted if object detected 
+            switch_threshold = switch*(steerr-steerl)/2#this is done to trun the bot so it can see the switched lane
+            cv2.putText(img, str(steer2 + switch_threshold), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        else:
+            cv2.putText(img, str(steer2), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)# this means object is not in the lane which implies lane dtector's value will be given    
     cv2.rectangle(img, (x, y), ((x + w), (y + h)), (255, 0, 255), 3, 3 )
     cv2.circle(img, (X,Y), 2, (255,0,0),-1)
     cv2.line(img, (X,Y), (int(img.shape[1]/2),img.shape[0]), (0,255,0))
@@ -52,65 +57,6 @@ def drawBox1(img,bbox,bbox1,switch,bbox2):# this will be used if both lane and o
     cv2.circle(img, (X1,Y1), 2, (255,0,0),-1)
     cv2.line(img, (X1,Y1), (int(img.shape[1]/2),img.shape[0]), (0,0,255))
     return switch
-
-
-
-
-image=cv2.imread('test.jpg')
-lane=np.copy(image)
-
-def canny_image(image):# from line 58 to 109 is not used in this script.                                   #function to get canny output
-    grey=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
-    blur=cv2.GaussianBlur(grey,(5,5),0)
-    canny=cv2.Canny(grey,0,30)
-    return canny
-
-def roi(image):                                                 #Defination of region of interest
-    height=image.shape[0]
-    triangles=np.array([[(0,height),(1100,height),(520,0)]])
-    mask=np.zeros_like(image)
-    cv2.fillPoly(mask,triangles,255)
-    masked_image=cv2.bitwise_and(image,mask)
-    return masked_image
-
-def display_lines(images,lines):                               #function to display detected line
-    line_image=np.zeros_like(images)
-    if lines is not None:
-
-        for line in lines:
-            x1,y1,x2,y2=line.reshape(4)
-            cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0),10)
-    return line_image
-
-def make_cordinate(image,line_parameters):                   #get coordinates of line
-    slope,intercept=line_parameters
-    y1=image.shape[0]
-    y2=int(y1*(3/5))
-    x1=int((y1-intercept)/slope)
-    x2=int((y2-intercept)/slope)
-    return np.array([x1,y1,x2,y2])
-
-
-def average_slope_intercept(image,lines):                      #Make a average line from many lines
-    left_fit=[]
-    right_fit=[]
-    for line in lines:
-        x1,y1,x2,y2=line.reshape(4)
-        parameters=np.polyfit((x1,x2),(y1,y2),1)
-        slope=parameters[0]
-        intercept=parameters[1]
-        if slope<0:
-            left_fit.append((slope,intercept))
-        else:
-            right_fit.append((slope,intercept))
-    average_left=np.average(left_fit,axis=0)
-    average_right=np.average(right_fit,axis=0)
-    left_line=make_cordinate(image,average_left)
-    right_line=make_cordinate(image,average_right)
-    return np.array([left_line,right_line])# from line 58 to 109 is not used in this script.
-
-
-
 
 tracker = cv2.TrackerTLD_create()#tracker for left_lane is created
 tracker1 = cv2.TrackerTLD_create()# tracker for object is created
@@ -122,6 +68,7 @@ bbox = cv2.selectROI("Tracking",frame, False)
 print(bbox)
 bbox1 = cv2.selectROI("Tracking",frame1, False)# bbox for lane and bbox1 for object
 #print(bbox1)
+A = int(bbox1[2])*int(bbox1[3])
 bbox2 = cv2.selectROI("Tracking",frame2, False)
 #bbox = (258, 430, 301, 74)
 tracker.init(frame, bbox)
@@ -129,7 +76,6 @@ tracker1.init(frame1, bbox1)
 tracker2.init(frame2,bbox2)# initialisation
 count = 1
 # images taken from the video and got resized and got stored in resized folder is then traversed one by one
-success1 = False
 switch = -1 
 while count <=539:
     img = cv2.imread("G:\\CarlaSimulator\\resize4\\img" + str(count)+ ".jpg")
@@ -156,7 +102,7 @@ while count <=539:
             cv2.putText(img, "Lost", (100, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
  
         else:# if the object is visible
-            switch = drawBox1(img,bbox, bbox1, switch,bbox2)
+            switch = drawBox1(img,bbox, bbox1, switch,bbox2,A)
     cv2.rectangle(img,(15,15),(200,90),(255,0,255),2)
     cv2.putText(img, "Fps:", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,255), 2);
     cv2.putText(img, "Status:", (20, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2);
