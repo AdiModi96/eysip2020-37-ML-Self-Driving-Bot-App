@@ -1,7 +1,7 @@
 '''
 *Team Id: 37
 *Author: gukan
-*Functions: drawBox,drawBox1
+*Functions: drawBox
 *Filename: lane_tracker.py
 '''
 import cv2
