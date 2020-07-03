@@ -1,3 +1,9 @@
+'''
+*Team Id: 37
+*Author: gukan
+*Functions: drawBox,drawBox1
+*Filename:lane_object_tracker.py
+'''
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,6 +11,13 @@ import math
 # bbox is bounding box of lane tracker
 # bbox1 is bounding box of object tracker
 # A is area of the initial bbox of object which would taken from a image where object is in safe distance
+'''
+* Function name: steer1
+* Input: point as x,y and image
+* Output: Steering value for that point
+* Logic: point's position with respect to the line which divides the image into two vertical havles is calculated in angle and then converted to -1 to 1
+'''
+
 
 def steer1(x,y,img): # had to do this operation again and again for many points so created a seperate function for it(this will give steering angle for that particular point)
 
@@ -17,6 +30,12 @@ def steer1(x,y,img): # had to do this operation again and again for many points 
             theta = -math.pi/2
     theta = theta*2/math.pi
     return theta
+'''
+* Function name: drawBox
+* Input: bounding box as bbox for lane tracker and image
+* Output: Steering value for that image
+* Logic: it just gets the center of the bbox for lane tracker and feed it to the steer1 function to get the value and just print its value on the image
+'''
 def drawBox(img,bbox):# this function will be used if no object is detected only lane is detected
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
     X, Y = int(x+w/2) , int(y+ h/2) # here we find the center of the lane tracker
@@ -25,6 +44,12 @@ def drawBox(img,bbox):# this function will be used if no object is detected only
     cv2.line(img, (X,Y), (int(img.shape[1]/2),img.shape[0]), (0,255,0))# these functions are just for visualisation
     steer = steer1(X, Y, img)
     cv2.putText(img, str(steer), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+'''
+* Function name: drawBox1
+* Input: bounding box as bbox for lane tracker, bbox1 for object tracker and image, A for area threshold
+* Output: Steering value for that image
+* Logic: it just gets the center of the bbox for lane tracker, and midpoint of left and right breath lines in the bbox and feed it to the steer1 function to get the steer2,steero,steerl,steerr and if object not detected or if object is detected but less than area threshold or if object is detected but steero doesnt lie between steerl and steerr then steer2 will be the output else (steerl+ steerr - steero) is the output 
+'''    
 
 def drawBox1(img,bbox,bbox1,A):# this will be used if both lane and object are detected
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
