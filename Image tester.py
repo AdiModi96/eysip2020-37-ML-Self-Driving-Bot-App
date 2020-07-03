@@ -1,10 +1,27 @@
+'''
+*Team Id: 37
+*Author: gukan
+*Functions: preprocessing, roi_right, display_lines,mouse_drawing,averaged_lines,make_lines,make_lines1
+*Filename: Image_tester.py
+'''
 import cv2
 import numpy as np
 import math
+'''
+* Function name: preproccessing
+* Input: image
+* Output: canny applied image
+'''
 def preprocessing(image):#does preprocessing and returns edges in the images
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	image = cv2.Canny(image, 100, 150)
 	return image
+'''
+* Function name: roi_right
+* Input: image
+* Output: image
+* Logic: canny applied image is taken and then it is masked with the roi to get a image where edged within the roi alone is there.
+'''
 def roi_right(image):#returns image which edges from the ROI alone
     height = image.shape[0]
     width = image.shape[1]
@@ -16,15 +33,33 @@ def roi_right(image):#returns image which edges from the ROI alone
     cv2.fillPoly(mask,[roi],255)
     masked = cv2.bitwise_and(image, mask)
     return masked
+'''
+* Function name: display_lines
+* Input: image and lines
+* Output: lines r draw on a image
+* Logic: every line is taken from lines unpacked into end points and then line is drawn using those end points
+'''
 def display_lines(image,lines):# this function was used to check whether we are getting lines or not now this is not needed
     line_image = np.zeros_like(image)
     for line in lines:
         x1,y1,x2,y2 = line.reshape(4)
         cv2.line(line_image,(x1,y1),(x2,y2),(255,0,0),5)
     return line_image
+'''
+* Function name: mouse_drawing
+* Input: event,x,y,flags,params
+* Output: prints x and y 
+* Logic: uses mousecallback
+'''
 def mouse_drawing(event, x, y, flags, params):# this was used to mark roi points not needed now
     if event == cv2.EVENT_LBUTTONDOWN:
         print((x,y))
+'''
+* Function name: averaged_lines
+* Input: images,lines
+* Output: draws the final image
+* Logic: lines from the left and right r taken and two lines which average of the left lines and right lines respectively r calculated and from those two lines central line is calculated and the angle it makes with the line which divides the image into two halves are calculated  
+'''
 def averaged_lines(image,lines):# this line creates the average lines on the left side and right side from those two average lines we taking 2 points each from line with same y cordinates and we taking average of their x cordinates two get two points required for a line
     left_fit = []
     right_fit = []
@@ -75,6 +110,12 @@ def averaged_lines(image,lines):# this line creates the average lines on the lef
     cv2.line(img, (a,b), (c,d), (0,255,0), 5)
     cv2.line(img, (int(img.shape[1]/2),img.shape[0]), (int(img.shape[1]/2),0), (0,0,255),5)
     return img
+'''
+* Function name: make_lines
+* Input: image and average
+* Output: endpoints 
+* Logic: functions takes a point and slope and intercept to calculate another point and return those points used for left and right average line
+'''
 def make_lines(image,average):# this returns 2 points if we feed slope,intercept
     slope , intercept = average
     y1 = 429
@@ -82,6 +123,13 @@ def make_lines(image,average):# this returns 2 points if we feed slope,intercept
     x1 = int((y1- intercept)/slope)
     x2 = int((y2- intercept)/slope)
     return x1,y1,x2,y2
+'''
+* Function name: make_lines
+* Input: image and average
+* Output: endpoints 
+* Logic: functions takes a point and slope and intercept to calculate another point and return those points used for central line
+'''
+
 def make_lines1(image,average):
     slope , intercept = average
     y1 = 0
