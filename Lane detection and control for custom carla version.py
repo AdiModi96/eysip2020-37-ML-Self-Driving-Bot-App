@@ -25,6 +25,13 @@ Use ARROWS or WASD keys for control.
 
 STARTING in a moment...
 """
+'''
+*Team Id: 37
+*Author: gukan
+*Functions: preprocessing, roi_right, display_lines,mouse_drawing,averaged_lines,make_lines,make_lines1
+*Filename: Lane detection and control for custom carla version.py
+*global variable: i
+'''
 
 from __future__ import print_function
 
@@ -165,6 +172,12 @@ class CarlaGame(object):
         self._map_view = None
         self._position = None
         self._agent_positions = None
+ '''
+* Function name: make_lines
+* Input: image and average
+* Output: endpoints 
+* Logic: functions takes a point and slope and intercept to calculate another point and return those points used for left and right average lines
+'''
     def make_lines(self,image,average):# this returns 2 points if we feed slope,intercept
         slope , intercept = average
         y1 = 429
@@ -172,6 +185,12 @@ class CarlaGame(object):
         x1 = int((y1- intercept)/slope)
         x2 = int((y2- intercept)/slope)
         return x1,y1,x2,y2
+'''
+* Function name: make_lines1
+* Input: image and average
+* Output: endpoints 
+* Logic: functions takes a point and slope and intercept to calculate another point and return those points used for central line
+'''
     def make_lines1(self,image,average):
         slope , intercept = average
         y1 = 0
@@ -179,6 +198,12 @@ class CarlaGame(object):
         x1 = int((y1- intercept)/slope)
         x2 = int((y2- intercept)/slope)
         return x1,y1,x2,y2   
+'''
+* Function name: averaged_lines
+* Input: images,lines
+* Output: draws the final image
+* Logic: lines from the left and right r taken and two lines which average of the left lines and right lines respectively r calculated and from those two lines central line is calculated and the angle it makes with the line which divides the image into two halves are calculated  
+'''
     def averaged_lines(self,image,lines):# this line creates the average lines on the left side and right side from those two average lines we taking 2 points each from line with same y cordinates and we taking average of their x cordinates two get two points required for a line
         left_fit = []
         right_fit = []
@@ -240,6 +265,11 @@ class CarlaGame(object):
         cv2.line(img, (a,b), (c,d), (0,255,0), 5)
         cv2.line(img, (int(img.shape[1]/2),img.shape[0]), (int(img.shape[1]/2),0), (0,0,255),5)
         return cv2.addWeighted(img, 0.8, image, 1, 1)
+ '''
+* Function name: preproccessing
+* Input: image
+* Output: preprocessed  image
+'''
     def preprocessing(self,image):#does preprocessing and returns edges in the images
         cv2.imshow("imagep",image)
         rgb_planes = cv2.split(image)
@@ -274,6 +304,12 @@ class CarlaGame(object):
         cv2.fillPoly(mask,[roi],255)
         masked = cv2.bitwise_and(image, mask)
         return masked
+'''
+* Function name: display_lines
+* Input: image and lines
+* Output: lines r draw on a image
+* Logic: every line is taken from lines unpacked into end points and then line is drawn using those end points
+'''
     def display_lines(self,image,lines):# this function was used to check whether we are getting lines or not now this is not needed
         self.line_image = np.zeros_like(image)
         if self.lines is not None:
@@ -281,6 +317,11 @@ class CarlaGame(object):
                 x1,y1,x2,y2 = line.reshape(4)
                 cv2.line(self.line_image,(x1,y1),(x2,y2),(255,0,0),5)
         return self.line_image 
+ '''
+* Function name: process_image
+* Input: image 
+* Output: final image and steering value
+'''
     def process_image(self,image):
         #i2 = i.reshape((800,600,4))
         self.img1 = self.preprocessing(image)
