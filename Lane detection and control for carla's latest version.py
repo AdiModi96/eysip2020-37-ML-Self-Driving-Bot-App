@@ -1,3 +1,9 @@
+'''
+*Team Id: 37
+*Author: gukan
+*Functions: preprocessing, roi_right, display_lines,mouse_drawing,averaged_lines,make_lines,make_lines1
+*Filename: Lane detection and control for carla's latest version.py
+'''
 import glob
 import os
 import sys
@@ -33,6 +39,12 @@ class carenv:
         self.world = self.client.get_world()
         self.blueprint_library = self.world.get_blueprint_library()
         self.bp = self.blueprint_library.filter('prius')[0]
+'''
+* Function name: make_lines
+* Input: image and average
+* Output: endpoints 
+* Logic: functions takes a point and slope and intercept to calculate another point and return those points used for left and right average lines
+'''
     def make_lines(self,image,average):# this returns 2 points if we feed slope,intercept
         slope , intercept = average
         y1 = 429
@@ -40,6 +52,12 @@ class carenv:
         x1 = int((y1- intercept)/slope)
         x2 = int((y2- intercept)/slope)
         return x1,y1,x2,y2
+ '''
+* Function name: make_lines1
+* Input: image and average
+* Output: endpoints 
+* Logic: functions takes a point and slope and intercept to calculate another point and return those points used for central line
+'''
     def make_lines1(self,image,average):
         slope , intercept = average
         y1 = 0
@@ -110,10 +128,21 @@ class carenv:
         cv2.line(img, (a,b), (c,d), (0,255,0), 5)
         cv2.line(img, (int(img.shape[1]/2),img.shape[0]), (int(img.shape[1]/2),0), (0,0,255),5)
         return cv2.addWeighted(img, 0.8, image, 1, 1)
+'''
+* Function name: preproccessing
+* Input: image
+* Output: canny applied image
+'''
     def preprocessing(self,image):#does preprocessing and returns edges in the images
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         image = cv2.Canny(image, 200, 250)
         return image
+'''
+* Function name: roi_right
+* Input: image
+* Output: image
+* Logic: canny applied image is taken and then it is masked with the roi to get a image where edged within the roi alone is there.
+'''
     def roi_right(self,image):#returns image which edges from the ROI alone
         height = image.shape[0]
         width = image.shape[1]
@@ -122,6 +151,12 @@ class carenv:
         cv2.fillPoly(mask,[roi],255)
         masked = cv2.bitwise_and(image, mask)
         return masked
+ '''
+* Function name: display_lines
+* Input: image and lines
+* Output: lines r draw on a image
+* Logic: every line is taken from lines unpacked into end points and then line is drawn using those end points
+'''
     def display_lines(self,image,lines):# this function was used to check whether we are getting lines or not now this is not needed
         self.line_image = np.zeros_like(image)
         if self.lines is not None:
@@ -129,6 +164,12 @@ class carenv:
                 x1,y1,x2,y2 = line.reshape(4)
                 cv2.line(self.line_image,(x1,y1),(x2,y2),(255,0,0),5)
         return self.line_image 
+'''
+* Function name: process_image
+* Input: image 
+* Output: shows the final output image with steering value
+* Logic: All the functions above created are called here to create the final output image and gives final steering value for that image
+'''
     def process_image(self,image):
         self.i = np.array(image.raw_data)
         self.i2 = self.i.reshape((self.im_height,self.im_width,4))
