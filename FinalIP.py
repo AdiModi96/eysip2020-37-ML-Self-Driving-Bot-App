@@ -2,6 +2,12 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+'''
+* Function name: steer1
+* Input: point as x,y and image
+* Output: Steering value for that point
+* Logic: point's position with respect to the line which divides the image into two vertical havles is calculated in angle and then converted to -1 to 1
+'''
 
 
 def steer1(x,y,img): # had to do this operation again and again for many points so created a seperate function for it(this will give steering angle for that particular point)
@@ -16,6 +22,13 @@ def steer1(x,y,img): # had to do this operation again and again for many points 
     else:
         theta = (90 + theta)
     return theta/90
+'''
+* Function name: drawBox
+* Input: bounding box as bbox for lane tracker and image
+* Output: Steering value for that image
+* Logic: it just gets the center of the bbox for lane tracker and feed it to the steer1 function to get the value and just print its value on the image
+'''
+
 def drawBox(img,bbox):# this function will be used if no object is detected only lane is detected
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
     X, Y = int(x+w/2) , int(y+ h/2) # here we find the center of the lane tracker
@@ -24,15 +37,20 @@ def drawBox(img,bbox):# this function will be used if no object is detected only
     cv2.line(img, (X,Y), (int(img.shape[1]/2),img.shape[0]), (0,255,0))# these functions are just for visualisation
     steer = steer1(X, Y, img)
     cv2.putText(img, str(steer), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
-def drawBox1(img,bbox,bbox1):# this will be used if both lane and object are detected
+'''
+* Function name: drawBox1
+* Input: bounding box as bbox for lane tracker, bbox1 for object tracker and image, A for area threshold
+* Output: Steering value for that image
+* Logic: it just gets the center of the bbox for lane tracker, and midpoint of left and right breath lines in the bbox and feed it to the steer1 function to get the steer2,steero,steerl,steerr and if object not detected or if object is detected but less than area threshold or if object is detected but steero doesnt lie between steerl and steerr then steer2 will be the output else (steerl+ steerr - steero) is the output 
+'''
+def drawBox1(img,bbox,bbox1,A):# this will be used if both lane and object are detected
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
     X, Y = int(x+w/2) , int(y+ h/2)
     x1, y1, w1, h1 = int(bbox1[0]), int(bbox1[1]), int(bbox1[2]), int(bbox1[3])
     X1, Y1 = int(x1+w1/2) , int(y1+ h1/2)
     steer2 = steer1(X, Y, img)# here both center of object and lane trackers or calculated 
     a = w1*h1
-    if a<600:# checks whether object tracker is above the area threshold or not.if not  then value by lane tracker would be used 
+    if a<A:# checks whether object tracker is above the area threshold or not.if not  then value by lane tracker would be used 
         cv2.putText(img, str(steer2), (320, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     else:# if it is above the threshold then steering values corresponding to the midpoints of the breath lines of the lane tracker rectangle will be calculated, the value corresponding to the centre of the object will also be calculated
         steero = steer1(X1, Y1, img)#steering value for center of object tracker.
@@ -55,59 +73,6 @@ def drawBox1(img,bbox,bbox1):# this will be used if both lane and object are det
 
     
 
-image=cv2.imread('test.jpg')
-lane=np.copy(image)
-
-def canny_image(image):# from line 58 to 109 is not used in this script.                                   #function to get canny output
-    grey=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
-    blur=cv2.GaussianBlur(grey,(5,5),0)
-    canny=cv2.Canny(grey,0,30)
-    return canny
-
-def roi(image):                                                 #Defination of region of interest
-    height=image.shape[0]
-    triangles=np.array([[(0,height),(1100,height),(520,0)]])
-    mask=np.zeros_like(image)
-    cv2.fillPoly(mask,triangles,255)
-    masked_image=cv2.bitwise_and(image,mask)
-    return masked_image
-
-def display_lines(images,lines):                               #function to display detected line
-    line_image=np.zeros_like(images)
-    if lines is not None:
-
-        for line in lines:
-            x1,y1,x2,y2=line.reshape(4)
-            cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0),10)
-    return line_image
-
-def make_cordinate(image,line_parameters):                   #get coordinates of line
-    slope,intercept=line_parameters
-    y1=image.shape[0]
-    y2=int(y1*(3/5))
-    x1=int((y1-intercept)/slope)
-    x2=int((y2-intercept)/slope)
-    return np.array([x1,y1,x2,y2])
-
-
-def average_slope_intercept(image,lines):                      #Make a average line from many lines
-    left_fit=[]
-    right_fit=[]
-    for line in lines:
-        x1,y1,x2,y2=line.reshape(4)
-        parameters=np.polyfit((x1,x2),(y1,y2),1)
-        slope=parameters[0]
-        intercept=parameters[1]
-        if slope<0:
-            left_fit.append((slope,intercept))
-        else:
-            right_fit.append((slope,intercept))
-    average_left=np.average(left_fit,axis=0)
-    average_right=np.average(right_fit,axis=0)
-    left_line=make_cordinate(image,average_left)
-    right_line=make_cordinate(image,average_right)
-    return np.array([left_line,right_line])# from line 58 to 109 is not used in this script.
-
 
 
 
@@ -120,7 +85,7 @@ bbox = cv2.selectROI("Tracking",frame, False)
 print(bbox)
 bbox1 = cv2.selectROI("Tracking",frame1, False)# bbox for lane and bbox1 for object
 print(bbox1)
-
+A = int(bbox1[2])*int(bbox[3])
 #bbox = (258, 430, 301, 74)
 tracker.init(frame, bbox)
 tracker1.init(frame1, bbox1)# initialisation
@@ -148,7 +113,7 @@ while count <=539:
             cv2.putText(img, "Lost", (100, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
  
         else:# if the object is visible 
-            drawBox1(img,bbox, bbox1)
+            drawBox1(img,bbox, bbox1,A)
     cv2.rectangle(img,(15,15),(200,90),(255,0,255),2)
     cv2.putText(img, "Fps:", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,255), 2);
     cv2.putText(img, "Status:", (20, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2);
