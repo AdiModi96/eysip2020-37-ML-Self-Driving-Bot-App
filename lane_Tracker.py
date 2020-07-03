@@ -1,8 +1,20 @@
+'''
+*Team Id: 37
+*Author: gukan
+*Functions: drawBox,drawBox1
+*Filename: lane_tracker.py
+'''
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 # bbox is bounding box for lane
+'''
+* Function name: drawBox
+* Input: bounding box as bbox for lane tracker and image
+* Output: Steering value for that image
+* Logic: it just gets the center of the bbox for lane tracker and its position with respect the line which divides the image into two vertical havles is calculated in terms of angle and then it is converted into steering value to get the value and just print its value on the image
+'''
 
 def drawBox(img,bbox):# this function is used in case of lane detection
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
