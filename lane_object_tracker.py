@@ -86,7 +86,7 @@ bbox = cv2.selectROI("Tracking",frame, False)
 print(bbox)
 bbox1 = cv2.selectROI("Tracking",frame1, False)# bbox for lane and bbox1 for object
 print(bbox1)
-A = int(bbox1[2])*int(bbox1[3])
+A = int(bbox1[2])*int(bbox1[3])#here is the area threshold calculated
 #bbox = (258, 430, 301, 74)
 tracker.init(frame, bbox)
 tracker1.init(frame1, bbox1)# initialisation
