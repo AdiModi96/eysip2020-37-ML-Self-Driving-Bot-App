@@ -46,14 +46,14 @@ def drawBox(img,bbox):# this function will be used if no object is detected only
 * Output: Steering value for that image
 * Logic: it just gets the center of the bbox for lane tracker, and midpoint of left and right breath lines in the bbox and feed it to the steer1 function to get the steer2,steero,steerl,steerr and if object not detected or if object is detected but less than area threshold or if object is detected but steero doesnt lie between steerl and steerr then steer2 will be the output else (steerl+ steerr - steero) is the output 
 '''
-def drawBox1(img,bbox,bbox1):# this will be used if both lane and object are detected
+def drawBox1(img,bbox,bbox1,A):# this will be used if both lane and object are detected
     x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
     X, Y = int(x+w/2) , int(y+ h/2)
     x1, y1, w1, h1 = int(bbox1[0]), int(bbox1[1]), int(bbox1[2]), int(bbox1[3])
     X1, Y1 = int(x1+w1/2) , int(y1+ h1/2)
     steer2 = steer1(X, Y, img)# here both center of object and lane trackers or calculated 
     a = w1*h1
-    if a<600:# checks whether object tracker is above the area threshold or not.if not  then value by lane tracker would be used 
+    if a<A:# checks whether object tracker is above the area threshold or not.if not  then value by lane tracker would be used 
         cv2.putText(img, str(steer2), (320, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
     else:# if it is above the threshold then steering values corresponding to the midpoints of the breath lines of the lane tracker rectangle will be calculated, the value corresponding to the centre of the object will also be calculated
         steero = steer1(X1, Y1, img)#steering value for center of object tracker.
@@ -158,6 +158,7 @@ bbox = cv2.selectROI("Tracking",frame, False)
 print(bbox)
 bbox1 = cv2.selectROI("Tracking",frame1, False)# bbox for lane and bbox1 for object
 print(bbox1)
+A = int(bbox1[2])*int(bbox[3])# this is the area threshold calculated by placing the object at safe distance
 mino1 = mino
 maxo1 = maxo
 #bbox = (258, 430, 301, 74)
@@ -189,7 +190,7 @@ while count <=539:
             cv2.putText(img_rgb, "Lost", (100, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
  
         else:# if the object is visible 
-            drawBox1(img_rgb,bbox, bbox1)
+            drawBox1(img_rgb,bbox, bbox1,A)
     cv2.rectangle(img,(15,15),(200,90),(255,0,255),2)
     cv2.putText(img, "Fps:", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,255), 2);
     cv2.putText(img, "Status:", (20, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2);
