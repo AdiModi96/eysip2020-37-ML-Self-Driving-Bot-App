@@ -76,58 +76,7 @@ def drawBox1(img,bbox,bbox1,A):# this will be used if both lane and object are d
 
 
 
-image=cv2.imread('test.jpg')
-lane=np.copy(image)
 
-def canny_image(image):# from line 58 to 109 is not used in this script.                                   #function to get canny output
-    grey=cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
-    blur=cv2.GaussianBlur(grey,(5,5),0)
-    canny=cv2.Canny(grey,0,30)
-    return canny
-
-def roi(image):                                                 #Defination of region of interest
-    height=image.shape[0]
-    triangles=np.array([[(0,height),(1100,height),(520,0)]])
-    mask=np.zeros_like(image)
-    cv2.fillPoly(mask,triangles,255)
-    masked_image=cv2.bitwise_and(image,mask)
-    return masked_image
-
-def display_lines(images,lines):                               #function to display detected line
-    line_image=np.zeros_like(images)
-    if lines is not None:
-
-        for line in lines:
-            x1,y1,x2,y2=line.reshape(4)
-            cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0),10)
-    return line_image
-
-def make_cordinate(image,line_parameters):                   #get coordinates of line
-    slope,intercept=line_parameters
-    y1=image.shape[0]
-    y2=int(y1*(3/5))
-    x1=int((y1-intercept)/slope)
-    x2=int((y2-intercept)/slope)
-    return np.array([x1,y1,x2,y2])
-
-
-def average_slope_intercept(image,lines):                      #Make a average line from many lines
-    left_fit=[]
-    right_fit=[]
-    for line in lines:
-        x1,y1,x2,y2=line.reshape(4)
-        parameters=np.polyfit((x1,x2),(y1,y2),1)
-        slope=parameters[0]
-        intercept=parameters[1]
-        if slope<0:
-            left_fit.append((slope,intercept))
-        else:
-            right_fit.append((slope,intercept))
-    average_left=np.average(left_fit,axis=0)
-    average_right=np.average(right_fit,axis=0)
-    left_line=make_cordinate(image,average_left)
-    right_line=make_cordinate(image,average_right)
-    return np.array([left_line,right_line])# from line 58 to 109 is not used in this script.
 
 
 
