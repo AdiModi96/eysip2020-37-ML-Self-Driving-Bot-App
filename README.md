@@ -17,23 +17,23 @@ Lane_Tracker:
 
 This script uses select ROI for choosing bounding boxes for lane. Then TrackerTLD is created and initialised with this bounding box and its corresponding image.Then we get centre of the bounding box everytime the image changes and the tracker gets updated.Then with center and the midpoint of the bottom line of the image(width/2,height) is used to create a line then the angle between this line and Y axis found.It is in the range of -90 to 90 then angle is mapped to -1 to 1 to give the steering value.
 
-Lane_object_tracker:
-
-The fifth script invovles addition of another Tracker for object detection so that the vehicle can move away from it.
-The above method used in Fourth script is used for getting steering values from the object detector(Note: it is important to note that the steering value we get from the object detector is not the value we should cause if the object is in say left then it would give only negative  steering value which would make the bot to move in left direction but that is not needed).if the object detector cant detect anything or the area of the bounding box of object detector is less than the AREA THRESHOLD then steering value given by lane dtector will be used if the area is above threshold then if value by object detector is less than the POSITION THRESHOLD then negative of the value given by object dtector will be fed to the bot/ vehicle if it is above the POSITION THRESHOLD then value from lane detector will be used.
-
 AREA THRESHOLD:
 The area threshold is dtermined by keeping the object at a save distance from the bot then its area is caluculated through width and height unpacked from initial bbox for object.If the area is above this threshold which means the object is neare to the bot than save distance so it is a danger and the bot should move away from it.
 
 POSITION THREHOLD:
 this threshold determines whether the object is within the lane or not . If a object is not within the lane then we need not worry about it.
 
-FinalIP:
-
+Lane_object_tracker:
+the script uses the lane tracker from lane tracker and use object tracker as well. And decision on steering angle is decided on area and position threshold.
+if the object is not visible then there is no problem lane Tracker is used. if object is visible then only thresholds come into play.
 Position threshold is given in such a way that object tracker's steering value must lie within left end and right end of lane tracker.
 It is done by the following way while finding steering value given by the center of lane detector we would be giving it to the bot in the cases where object tracker can't find the object or the object's area is below area threshold.
 If object tracker's area is above threshold then we will take steering values for the midpoints of the breath lines of the lane tracker and we name them steerl and steerr which corresponds to left and right midpoints of the breath lines in tracker. We will then check whether steering value given by center of object tracker lies between steerl and steerr if it lies between that then final steering angle of steerl + steerr - steero would be given this will ensure that always the turning will decrease as we will move away from the obstacle. If the object tracker's steering value doesn't lie between the steerl and steerr which means it is not on the lane so , lane detector's output will be given as final output.
 colour tagged everything such that the steering  output will be green in colour if object is not visible or it is within area threshold , it will be of blue in colour if the obstacle is inside the lane and will be red in colour if obstacle is outside the lane.
 
+FinalIP:
+Small tweak which was made in this from lane_object_tracker is that thresholding of the images was done to ensure noises are eliminated.
+
+
 multilane:
-  Implemented for multilane.All the cases in the above script will apply but the only diffence is that we would need 3 trackers two for lane(left,right), 1 for object and if object is detected bot will switch lanes.
+  Implemented for multilane.All the cases in the above script will apply but the only diffence is that we would need 3 trackers two for lane(left,right), 1 for object and if object is detected bot will switch lanes for that a parameter switch was introduced which would be initialised to -1(as we place the bot on the left lane in the beginnning)  which corresponds to left hand side of the lane and 1 corresponds to right.if switch value is -1 then steer value would be calculated by left lane tracker's value and if 1 vice versa.
